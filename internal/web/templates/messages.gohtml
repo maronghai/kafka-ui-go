@@ -1,0 +1,121 @@
+{{define "messages"}}
+{{template "head" .}}
+<div class="page-head">
+  <h1>消息浏览 <span class="dim mono">{{.Topic}}</span></h1>
+  <div class="actions">
+    <a class="btn" href="/topics/{{.Topic}}">Topic 详情</a>
+    <a class="btn primary" href="/topics/{{.Topic}}/produce">发送消息</a>
+  </div>
+</div>
+
+<div class="panel">
+  <form class="filters" method="get" action="/topics/{{.Topic}}/messages">
+    <label>分区
+      <select name="partition">
+        {{- range seq .PartitionCount }}
+        <option value="{{.}}" {{if eq . $.Partition}}selected{{end}}>{{.}}</option>
+        {{- end }}
+      </select>
+    </label>
+    <fieldset class="offset-set">
+      <legend>起始位置</legend>
+      <label class="radio"><input type="radio" name="offset" value="earliest" {{if eq .OffsetMode "earliest"}}checked{{end}}> 最早</label>
+      <label class="radio"><input type="radio" name="offset" value="latest" {{if eq .OffsetMode "latest"}}checked{{end}}> 最新</label>
+      <label class="radio"><input type="radio" name="offset" value="custom" {{if eq .OffsetMode "custom"}}checked{{end}}> 指定</label>
+      <input class="num" type="text" inputmode="numeric" name="custom_offset" value="{{.OffsetInput}}" placeholder="offset">
+    </fieldset>
+    <label>条数
+      <select name="count">
+        {{$c := .Count}}
+        <option value="10" {{if eq $c 10}}selected{{end}}>10</option>
+        <option value="20" {{if eq $c 20}}selected{{end}}>20</option>
+        <option value="50" {{if eq $c 50}}selected{{end}}>50</option>
+        <option value="100" {{if eq $c 100}}selected{{end}}>100</option>
+        <option value="200" {{if eq $c 200}}selected{{end}}>200</option>
+      </select>
+    </label>
+    <button class="btn primary" type="submit">读取</button>
+  </form>
+</div>
+
+{{- with .Result }}
+<div class="panel">
+  <div class="panel-h">
+    <h2>读取结果</h2>
+    <span class="dim mono">范围 [{{humanNum .FirstOffset}}, {{humanNum .LastOffset}}) · 起点 {{humanNum .StartOffset}} · 共 {{len .Messages}} 条</span>
+  </div>
+
+  {{- if .TimedOut }}<p class="dim">读取超时：该位置之后暂无更多消息（尾部跟随结束）。</p>{{end}}
+  {{- if .Truncated }}
+  <p><a class="btn" href="/topics/{{$.Topic}}/messages?partition={{.Partition}}&amp;offset={{.NextOffset}}&amp;count={{$.Count}}">继续向后读取（offset {{humanNum .NextOffset}}） →</a></p>
+  {{- end }}
+
+  {{- range .Messages }}
+  <details class="msg">
+    <summary>
+      <span class="off mono">#{{humanNum .Offset}}</span>
+      <span class="dim">{{ts .Time}}</span>
+      <span class="key mono">{{if eq .Key.Encoding "empty"}}<span class="dim">(no key)</span>{{else}}{{trunc .Key.Text 40}}{{end}}</span>
+      <span class="size">{{humanBytes .Size}}</span>
+      <span class="prev mono">{{if eq .Value.Encoding "empty"}}<span class="dim">(empty)</span>{{else}}{{trunc .Value.Text 80}}{{end}}</span>
+    </summary>
+    <div class="msg-body">
+      {{- if .Headers }}
+      <h4>Headers</h4>
+      <table class="hdr">
+        <tbody>
+        {{- range .Headers }}
+          <tr><td class="mono">{{.Key}}</td><td class="mono {{.Value.Encoding}}">{{.Value.Text}}</td></tr>
+        {{- end }}
+        </tbody>
+      </table>
+      {{- end }}
+      <div class="payloads">
+        <div>
+          <h4>Key <span class="badge blue">{{.Key.Encoding}}</span></h4>
+          <pre class="payload {{.Key.Encoding}}">{{if eq .Key.Encoding "empty"}}(empty){{else}}{{.Key.Text}}{{end}}</pre>
+        </div>
+        <div>
+          <h4>Value <span class="badge blue">{{.Value.Encoding}}</span></h4>
+          <pre class="payload {{.Value.Encoding}}">{{if eq .Value.Encoding "empty"}}(empty){{else}}{{.Value.Text}}{{end}}</pre>
+        </div>
+      </div>
+      <p class="dim mono">partition {{.Partition}} · offset {{humanNum .Offset}}</p>
+    </div>
+  </details>
+  {{- else }}
+  <p class="empty">没有读到消息{{if .TimedOut}}（等待超时）{{end}}</p>
+  {{- end }}
+</div>
+{{- end }}
+
+<div class="panel">
+  <div class="panel-h"><h2>发送消息</h2></div>
+  <form class="form" method="post" action="/topics/{{.Topic}}/produce">
+    <div class="row">
+      <label>Key（可选）
+        <input type="text" name="key" placeholder="留空表示无 key">
+      </label>
+      <label>分区
+        <select name="partition">
+          <option value="-1">自动（key 哈希 / 轮询）</option>
+          {{- range seq .PartitionCount }}
+          <option value="{{.}}">{{.}}</option>
+          {{- end }}
+        </select>
+      </label>
+    </div>
+    <label>Value * <span class="dim">支持文本 / JSON</span>
+      <textarea name="value" rows="5" required placeholder='{"hello": "kafka"}'></textarea>
+    </label>
+    <div class="row">
+      <label>Header key（可选）<input type="text" name="header_key"></label>
+      <label>Header value<input type="text" name="header_value"></label>
+    </div>
+    <div class="form-actions">
+      <button class="btn primary" type="submit">发送</button>
+    </div>
+  </form>
+</div>
+{{template "foot" .}}
+{{- end}}

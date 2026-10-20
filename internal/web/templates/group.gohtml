@@ -1,0 +1,68 @@
+{{define "group"}}
+{{template "head" .}}
+{{- with .Detail }}
+<div class="page-head">
+  <h1 class="mono">{{.ID}}</h1>
+  <div class="badges inline">
+    <span class="badge {{stateClass .State}}">{{.State}}</span>
+    <span class="badge">成员 {{len .Members}}</span>
+    <span class="badge {{if gt .TotalLag 0}}red{{else}}green{{end}}">总 lag {{humanNum .TotalLag}}</span>
+    {{- if .ProtocolType }}<span class="badge gray">{{.ProtocolType}}</span>{{end}}
+  </div>
+</div>
+
+<p class="dim">coordinator: {{if .Coordinator}}{{.Coordinator}}{{else}}broker {{.CoordinatorID}}{{end}}</p>
+
+{{- range .Notes }}
+<div class="banner warn">{{.}}</div>
+{{- end }}
+
+<div class="panel">
+  <div class="panel-h"><h2>成员</h2></div>
+  {{- range .Members }}
+  <div class="member">
+    <div class="mono member-id">{{.MemberID}}</div>
+    <div class="dim">{{.ClientID}} @ {{.Host}}</div>
+    <div class="assigns">
+      {{- range .Assignments }}
+      <span class="chip mono">{{.Topic}}: {{range $i, $p := .Partitions}}{{if $i}}, {{end}}{{$p}}{{end}}</span>
+      {{- else }}
+      <span class="dim">未分配分区</span>
+      {{- end }}
+    </div>
+  </div>
+  {{- else }}
+  <p class="empty">没有活跃成员</p>
+  {{- end }}
+</div>
+
+<div class="panel">
+  <div class="panel-h"><h2>消费进度</h2><span class="dim">按 topic / 分区</span></div>
+  <div class="scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>Topic</th><th class="right">分区</th><th class="right">已提交 offset</th>
+        <th class="right">LEO</th><th class="right">Lag</th><th>metadata</th>
+      </tr>
+    </thead>
+    <tbody>
+    {{- range .Partitions }}
+      <tr>
+        <td class="mono"><a href="/topics/{{.Topic}}">{{.Topic}}</a></td>
+        <td class="right">{{.Partition}}</td>
+        <td class="right mono">{{if .HasCommit}}{{humanNum .CommittedOffset}}{{else}}—{{end}}</td>
+        <td class="right mono">{{humanNum .EndOffset}}</td>
+        <td class="right mono {{if and .HasCommit (gt .Lag 0)}}lagged{{end}}">{{if .HasCommit}}{{humanNum .Lag}}{{else}}—{{end}}</td>
+        <td class="dim">{{if .Metadata}}{{.Metadata}}{{else}}—{{end}}</td>
+      </tr>
+    {{- else }}
+      <tr><td colspan="6" class="empty">该 group 没有已提交的 offset</td></tr>
+    {{- end }}
+    </tbody>
+  </table>
+  </div>
+</div>
+{{- end }}
+{{template "foot" .}}
+{{- end}}

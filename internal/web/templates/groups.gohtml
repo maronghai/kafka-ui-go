@@ -1,0 +1,32 @@
+{{define "groups"}}
+{{template "head" .}}
+<div class="page-head">
+  <h1>Consumer Groups <span class="count">{{len .Groups}}</span></h1>
+</div>
+
+<div class="panel">
+  <table>
+    <thead>
+      <tr>
+        <th>Group ID</th><th>状态</th><th class="right">成员</th>
+        <th class="right">订阅 topics</th><th>Coordinator</th><th class="right">Lag</th>
+      </tr>
+    </thead>
+    <tbody>
+    {{- range .Groups }}
+      <tr>
+        <td><a class="mono" href="/groups/{{.ID}}">{{.ID}}</a></td>
+        <td><span class="badge {{stateClass .State}}">{{.State}}</span></td>
+        <td class="right">{{.Members}}</td>
+        <td class="right">{{.Topics}}</td>
+        <td class="mono dim">{{if .Coordinator}}{{.Coordinator}}{{else}}broker {{.CoordinatorID}}{{end}}</td>
+        <td class="right mono">{{humanNum .Lag}}</td>
+      </tr>
+    {{- else }}
+      <tr><td colspan="6" class="empty">没有 consumer group</td></tr>
+    {{- end }}
+    </tbody>
+  </table>
+</div>
+{{template "foot" .}}
+{{- end}}

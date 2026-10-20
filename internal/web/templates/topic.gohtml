@@ -1,0 +1,75 @@
+{{define "topic"}}
+{{template "head" .}}
+{{- with .Detail }}
+<div class="page-head">
+  <h1 class="mono">{{.Name}}</h1>
+  <div class="actions">
+    <a class="btn" href="/topics/{{.Name}}/messages?offset=earliest">浏览消息</a>
+    <a class="btn primary" href="/topics/{{.Name}}/produce">发送消息</a>
+  </div>
+</div>
+
+<div class="badges">
+  {{- if .Internal }}<span class="badge gray">internal</span>{{end}}
+  <span class="badge">分区 {{len .Partitions}}</span>
+  <span class="badge">副本 {{.ReplicationFactor}}</span>
+  <span class="badge">消息约 {{humanNum .TotalMessages}} 条</span>
+  {{- if .UnderReplicated }}<span class="badge red">存在副本不足的分区</span>{{end}}
+</div>
+
+{{- range .Notes }}
+<div class="banner warn">{{.}}</div>
+{{- end }}
+
+<div class="panel">
+  <div class="panel-h"><h2>Partitions</h2></div>
+  <div class="scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>Leader</th><th>Replicas</th><th>ISR</th>
+        <th class="right">起始 offset</th><th class="right">LEO</th><th class="right">消息数</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {{- range .Partitions }}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.LeaderID}} <span class="dim mono">{{.LeaderAddr}}</span></td>
+        <td class="mono">{{range $i, $r := .Replicas}}{{if $i}}, {{end}}{{$r}}{{end}}</td>
+        <td class="mono">{{range $i, $r := .ISR}}{{if $i}}, {{end}}{{$r}}{{end}}</td>
+        <td class="right mono">{{humanNum .FirstOffset}}</td>
+        <td class="right mono">{{humanNum .LastOffset}}</td>
+        <td class="right mono">{{humanNum (sub .LastOffset .FirstOffset)}}</td>
+        <td><a href="/topics/{{$.Detail.Name}}/messages?partition={{.ID}}&amp;offset=earliest">查看</a></td>
+      </tr>
+    {{- else }}
+      <tr><td colspan="8" class="empty">没有分区</td></tr>
+    {{- end }}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-h"><h2>配置</h2></div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>名称</th><th>值</th><th>来源</th></tr></thead>
+    <tbody>
+    {{- range .Config }}
+      <tr>
+        <td class="mono">{{.Name}}</td>
+        <td class="mono">{{if .Sensitive}}••••••（敏感）{{else}}{{.Value}}{{end}}</td>
+        <td>{{if .IsDefault}}默认{{else}}自定义{{end}}</td>
+      </tr>
+    {{- else }}
+      <tr><td colspan="3" class="empty">没有配置信息</td></tr>
+    {{- end }}
+    </tbody>
+  </table>
+  </div>
+</div>
+{{- end }}
+{{template "foot" .}}
+{{- end}}

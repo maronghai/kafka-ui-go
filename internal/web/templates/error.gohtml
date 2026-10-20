@@ -1,0 +1,12 @@
+{{define "error"}}
+{{template "head" .}}
+<div class="errbox panel">
+  <h1>{{.Heading}}</h1>
+  <p>{{.Message}}</p>
+  <p class="actions">
+    <a class="btn" href="/">返回首页</a>
+    <a class="btn" href="/topics">Topics</a>
+  </p>
+</div>
+{{template "foot" .}}
+{{- end}}

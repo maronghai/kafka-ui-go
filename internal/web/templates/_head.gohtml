@@ -1,0 +1,26 @@
+{{define "head" -}}
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{if .Title}}{{.Title}} · {{end}}Kafka UI</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/">kafka<span class="accent">-ui</span></a>
+  <nav>
+    <a href="/" class="{{if eq .Active "home"}}on{{end}}">概览</a>
+    <a href="/topics" class="{{if eq .Active "topics"}}on{{end}}">Topics</a>
+    <a href="/groups" class="{{if eq .Active "groups"}}on{{end}}">Consumer Groups</a>
+  </nav>
+</header>
+<main class="container">
+{{- if .Err }}
+<div class="banner err">{{.Err}}</div>
+{{- end }}
+{{- if .Flash }}
+<div class="banner ok">{{.Flash}}</div>
+{{- end }}
+{{- end}}

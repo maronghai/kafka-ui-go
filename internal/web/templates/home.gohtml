@@ -1,0 +1,44 @@
+{{define "home"}}
+{{template "head" .}}
+<h1>集群概览</h1>
+{{- with .Info }}
+<div class="cards">
+  <div class="card"><div class="num">{{humanNum .TopicCount}}</div><div class="lbl">Topics</div></div>
+  <div class="card"><div class="num">{{humanNum .PartitionCount}}</div><div class="lbl">Partitions</div></div>
+  <div class="card"><div class="num">{{groupCount .GroupCount}}</div><div class="lbl">Consumer Groups</div></div>
+  <div class="card"><div class="num">{{len .Brokers}}</div><div class="lbl">Brokers</div></div>
+</div>
+
+<div class="panel">
+  <div class="panel-h">
+    <h2>Cluster</h2>
+    <span class="dim">controller: broker {{.ControllerID}}</span>
+  </div>
+  <table>
+    <thead><tr><th>Cluster ID</th></tr></thead>
+    <tbody><tr><td class="mono">{{if .ClusterID}}{{.ClusterID}}{{else}}—{{end}}</td></tr></tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <div class="panel-h"><h2>Brokers</h2></div>
+  <table>
+    <thead><tr><th>ID</th><th>地址</th><th>Rack</th></tr></thead>
+    <tbody>
+    {{- range .Brokers }}
+      <tr>
+        <td>{{.ID}}</td>
+        <td class="mono">{{.Addr}}</td>
+        <td>{{if .Rack}}{{.Rack}}{{else}}—{{end}}</td>
+      </tr>
+    {{- else }}
+      <tr><td colspan="3" class="empty">没有可用 broker</td></tr>
+    {{- end }}
+    </tbody>
+  </table>
+</div>
+{{- else }}
+<p class="dim">集群概览不可用，请检查 Kafka 是否可达。</p>
+{{- end }}
+{{template "foot" .}}
+{{- end}}

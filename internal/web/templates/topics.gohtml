@@ -1,0 +1,34 @@
+{{define "topics"}}
+{{template "head" .}}
+<div class="page-head">
+  <h1>Topics <span class="count">{{len .Topics}}</span></h1>
+  <form class="search" method="get" action="/topics">
+    <input type="search" name="q" value="{{.Query}}" placeholder="搜索 topic…">
+    <button class="btn" type="submit">搜索</button>
+  </form>
+</div>
+
+<div class="panel">
+  <table>
+    <thead>
+      <tr><th>名称</th><th class="right">分区</th><th class="right">副本</th><th>状态</th></tr>
+    </thead>
+    <tbody>
+    {{- range .Topics }}
+      <tr>
+        <td>
+          <a class="mono" href="/topics/{{.Name}}">{{.Name}}</a>
+          {{- if .Internal }} <span class="badge gray">internal</span>{{end}}
+        </td>
+        <td class="right">{{.Partitions}}</td>
+        <td class="right">{{.ReplicationFactor}}</td>
+        <td>{{if .UnderReplicated}}<span class="badge red">副本不足</span>{{else}}<span class="badge green">正常</span>{{end}}</td>
+      </tr>
+    {{- else }}
+      <tr><td colspan="4" class="empty">{{if .Query}}没有匹配 “{{.Query}}” 的 topic{{else}}集群中还没有 topic{{end}}</td></tr>
+    {{- end }}
+    </tbody>
+  </table>
+</div>
+{{template "foot" .}}
+{{- end}}

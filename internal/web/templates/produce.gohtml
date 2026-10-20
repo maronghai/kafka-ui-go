@@ -1,0 +1,46 @@
+{{define "produce"}}
+{{template "head" .}}
+<div class="page-head">
+  <h1>发送消息 <span class="dim mono">{{.Topic}}</span></h1>
+  <div class="actions">
+    <a class="btn" href="/topics/{{.Topic}}/messages?offset=earliest">浏览消息</a>
+    <a class="btn" href="/topics/{{.Topic}}">Topic 详情</a>
+  </div>
+</div>
+
+<div class="panel">
+  <form class="form" method="post" action="/topics/{{.Topic}}/produce">
+    <div class="row">
+      <label>分区
+        <select name="partition">
+          <option value="-1" {{if eq .FormPartition "-1"}}selected{{end}}>自动（key 哈希 / 轮询）</option>
+          {{- range seq .PartitionCount }}
+          <option value="{{.}}" {{if eq $.FormPartition (printf "%d" .)}}selected{{end}}>{{.}}</option>
+          {{- end }}
+        </select>
+      </label>
+      <label>Key（可选）
+        <input type="text" name="key" value="{{.FormKey}}" placeholder="留空表示无 key">
+      </label>
+    </div>
+
+    <label>Value * <span class="dim">支持文本 / JSON</span>
+      <textarea name="value" rows="12" required placeholder='{"hello": "kafka"}'>{{.FormValue}}</textarea>
+    </label>
+
+    <details class="headers">
+      <summary>Headers（可选，单条）</summary>
+      <div class="row">
+        <label>Header key<input type="text" name="header_key" value="{{.FormHeaderKey}}"></label>
+        <label>Header value<input type="text" name="header_value" value="{{.FormHeaderValue}}"></label>
+      </div>
+    </details>
+
+    <div class="form-actions">
+      <button class="btn primary" type="submit">发送</button>
+      <a class="btn" href="/topics/{{.Topic}}">取消</a>
+    </div>
+  </form>
+</div>
+{{template "foot" .}}
+{{- end}}
