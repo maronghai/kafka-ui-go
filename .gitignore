@@ -1,0 +1,25 @@
+# 构建产物
+/kafka-ui-go
+/kafka-ui-go.exe
+*.exe
+*.test
+*.out
+
+# 覆盖率
+coverage.*
+coverage.html
+
+# Go workspace（本地多模块调试用，不入库）
+go.work
+go.work.sum
+
+# 环境变量
+.env
+.env.*
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
